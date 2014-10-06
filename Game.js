@@ -5,7 +5,9 @@ var button3;
 var button4;
 var answer;
 var dictionary;
+var vol;
 var signal;
+var library;
 
 // main
 $(document).ready(function(){
@@ -60,8 +62,66 @@ function initButtons()
 
 function initDictionary()
 {
-	// load dictionary
-	dictionary = ['a', 'green', 'I', 'see', 'like', 'one', 'the', 'we', 'do', 'look', 'was', 'yellow', 'you', 'are', 'have', 'that', 'they', 'two', 'he', 'is', 'three', 'to', 'with', 'for', 'go', 'here', 'me', 'where'];
+	// set library field
+	library = document.getElementById('library');
+	library.style.position = 'absolute';
+	library.style.height = '60%';
+	library.style.width = '18%';
+	library.style.left = '3%';
+	library.style.top = '3%';
+	
+	// import dictionaries
+	dictionary = [{name:'k.1', words:[['am','am'],['I','I'],['little','little'],['the','the'],['a','ay'],['to','to']]},
+	              {name:'k.2', words:[['have','have'],['is','is'],['like','like'],['my','my'],['we','we'],['for','for'],['he','he']]},
+	              {name:'k.3', words:[['me','me'],['with','with'],['she','she'],['look','look'],['see','see'],['of','of'],['they','they'],['you','you']]},
+	              {name:'k.4', words:[['are','are'],['do','do'],['that','that'],['five','five'],['four','four'],['one','one'],['three','three'],['two','two'],['from','from'],['go','go'],['here','here']]}
+	];
+	//var bookshelf = document.URL.substring(0, document.URL.length-("/demo.js/").length);
+	for (var i = 0; i < dictionary.length; i++)
+	{
+		// create button
+		var temp = document.createElement('button');
+		library.appendChild(temp);
+		temp.appendChild(document.createTextNode(dictionary[i].name));
+		temp.volnum = i;
+		temp.onclick = function() {vol = this.volnum; console.log(this.volnum);};
+		temp.style.width = '100%';
+		
+		// add new line
+		temp = document.createElement('br');
+		library.appendChild(temp);
+	}
+	vol = 0;
+	
+	// set redo button
+	var redo = document.getElementById('replay');
+	redo.style.position = 'absolute';
+	redo.style.fontSize = '20pt';
+	redo.style.height = '20%';
+	redo.style.width = '18%';
+	redo.style.left = '3%';
+	redo.style.top = '66%';
+	redo.onclick = function() {
+		var answord = '';
+		switch (answer)
+		{
+			case 1:
+			answord = button1.innerHTML;
+			break;
+			case 2:
+			answord = button2.innerHTML;
+			break;
+			case 3:
+			answord = button3.innerHTML;
+			break;
+			case 4:
+			answord = button4.innerHTML;
+			break;
+		}
+		var audio = new Audio();
+		audio.src =('http://demo.thewynngroup.net/audio.php?tl=en&q=Which%20is%20'+answord);
+		audio.play();
+	};
 }
 
 function start()
@@ -71,43 +131,57 @@ function start()
 	// create list
 	var tempnum;
 	var templist = new Array();
-	templist[0] = dictionary[Math.floor(Math.random() * dictionary.length)];
+	templist[0] = Math.floor(Math.random() * dictionary[vol].words.length);
 	for (var i = 1; i < 4; i++)
 	{
-		tempnum = Math.floor(Math.random() * dictionary.length);
-
-		while (!$.inArray(dictionary[tempnum], templist))
-		{
-			tempnum = Math.floor(Math.random() * dictionary.length);
+		var ts = false;
+		tempnum = Math.floor(Math.random() * dictionary[vol].words.length);
+		
+		while (!ts)
+		{	
+			tempnum = Math.floor(Math.random() * dictionary[vol].words.length);
+			
+			ts = true;
+			for(var j = 0; j < templist.length; j++)
+			{
+				if (tempnum == templist[j])
+				{
+					ts = false;
+				} 
+			}
 		}
-
-		templist[i] = dictionary[tempnum];
+		
+		templist[i] = tempnum;
 	}
 
 	// set buttons
-	button1.innerHTML = templist[0];
-	button2.innerHTML = templist[1];
-	button3.innerHTML = templist[2];
-	button4.innerHTML = templist[3];
+	button1.innerHTML = dictionary[vol].words[templist[0]][0];
+	button1.phonetic = dictionary[vol].words[templist[0]][1];
+	button2.innerHTML = dictionary[vol].words[templist[1]][0];
+	button2.phonetic = dictionary[vol].words[templist[1]][1];
+	button3.innerHTML = dictionary[vol].words[templist[2]][0];
+	button3.phonetic = dictionary[vol].words[templist[2]][1];
+	button4.innerHTML = dictionary[vol].words[templist[3]][0];
+	button4.phonetic = dictionary[vol].words[templist[3]][1];
 
 	// set answer
 	answer = Math.floor(Math.random() * 4) + 1;
 	
 	// say word
-	var answord;
+	var answord = '';
 	switch (answer)
 	{
 		case 1:
-		answord = button1.innerHTML;
+		answord = button1.phonetic;
 		break;
 		case 2:
-		answord = button2.innerHTML;
+		answord = button2.phonetic;
 		break;
 		case 3:
-		answord = button3.innerHTML;
+		answord = button3.phonetic;
 		break;
 		case 4:
-		answord = button4.innerHTML;
+		answord = button4.phonetic;
 		break;
 	}
 	var audio = new Audio();
@@ -119,41 +193,49 @@ function start()
 
 function guess(g)
 {
-	console.log(g+' '+answer);
+	// put up click blocker
+	var block = document.createElement('button');
+	document.getElementsByTagName('body')[0].appendChild(block);
+	block.innerHTML = 'test';
+	block.style.position = 'absolute';
+	block.style.height = '80%';
+	block.style.width = '80%';
+	block.style.left = '10%';
+	block.style.top = '10%';
 	
 	// log word
-	var word;
+	var word = '';
 	switch (g)
 	{
 		case 1:
-		word = button1.innerHTML;
+		word = button1.phonetic;
 		break;
 		case 2:
-		word = button2.innerHTML;
+		word = button2.phonetic;
 		break;
 		case 3:
-		word = button3.innerHTML;
+		word = button3.phonetic;
 		break;
 		case 4:
-		word = button4.innerHTML;
+		word = button4.phonetic;
 		break;
 	}
 	
 	// log answer
-	var answord;
+	var answord = '';
 	switch (answer)
 	{
 		case 1:
-		answord = button1.innerHTML;
+		answord = button1.phonetic;
 		break;
 		case 2:
-		answord = button2.innerHTML;
+		answord = button2.phonetic;
 		break;
 		case 3:
-		answord = button3.innerHTML;
+		answord = button3.phonetic;
 		break;
 		case 4:
-		answord = button4.innerHTML;
+		answord = button4.phonetic;
 		break;
 	}
 	
@@ -167,12 +249,12 @@ function guess(g)
 		signal.innerHTML = "Congratulations!";
 		signal.style.fontSize = '20pt';
 		signal.style.height = '20%';
-		signal.style.left = (0-signal.style.width)/2;
-		signal.style.top = (0-signal.style.height)/2;
+		signal.style.left = '40%';
+		signal.style.top = '40%';
 		
 		var audio = new Audio();
 		audio.src =('http://demo.thewynngroup.net/audio.php?tl=en&q=Correct!%20That%20is%20'+word);
-		audio.onended = function() {start();signal.remove()};
+		audio.onended = function() {start();signal.remove();};
 		audio.play();
 		
 		signal.onclick = function(){this.remove();};
@@ -185,19 +267,26 @@ function guess(g)
 		signal.innerHTML = "Woops! try again";
 		signal.style.fontSize = '20pt';
 		signal.style.height = '20%';
-		signal.style.left = (0-signal.style.width)/2;
-		signal.style.top = (0-signal.style.height)/2;
+		signal.style.left = '40%';
+		signal.style.top = '40%';
 		
 		var audio = new Audio();
 		audio.src =('http://demo.thewynngroup.net/audio.php?tl=en&q=That%20is%20'+word+'.%20Try%20again... ');
-		audio.onended = function() {audio.src =('http://demo.thewynngroup.net/audio.php?ie=utf-8&tl=en&q=Which%20is%20'+answord+'?');
-		audio.onended = function() {signal.remove();};
-		audio.play();
-		signal.remove();};
+		audio.onended = function() {
+			audio.src =('http://demo.thewynngroup.net/audio.php?ie=utf-8&tl=en&q=Which%20is%20'+answord+'?');
+			audio.onended = function() {
+				signal.remove();
+			};
+			audio.play();
+			signal.remove();
+		};
 		audio.play();
 
 		signal.onclick = function(){this.remove();};
 	}
+	
+	// remove click block
+	block.parentNode.removeChild(block);
 }
 
 function wait(milliseconds)
