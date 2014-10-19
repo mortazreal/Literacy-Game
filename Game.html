@@ -4,6 +4,12 @@
 		<script type='text/javascript' src='jquery.min.js'></script>
 		<script type="text/javascript" src="Game.js"></script>
 		<style type="text/css">
+			 #canvas {
+      			position: absolute;
+     			height: 20%;
+      			width: 40%;
+      			left: 25%;
+      		}
 			#library {
 				display: table-cell;
 				background-color: '#FF0000';
@@ -46,6 +52,7 @@
 		</style>
 	</head>
 	<body bgcolor='#CCCCCC'>
+    	<canvas id='canvas'></canvas>
 		<div id='library'></div>
 		<div><button id='replay'>Replay</button></div>
 		<button id='button1' onClick='guess(1)'>

@@ -15,6 +15,126 @@ $(document).ready(function(){
 });
 
 // methods
+var rubber;
+var img;
+
+//craft.js
+//impact.js
+
+function Rubber(canvasID) {
+    this.canvas = $('#canvas');
+    this.ctx = this.canvas[0].getContext('2d');
+    this.width = this.canvas[0].width;
+    this.height = this.canvas[0].height;
+    this.rect = this.canvas[0].getBoundingClientRect();
+    this.background = '#FFFFFF';
+    this.canvas.css('cursor','pointer');
+    this.ctx.font = '64pt Arial';
+    this.ctx.textAlign = 'center';
+    this.player = new Player(this);
+}
+
+function Player(rubber){
+    this.rubber = rubber;
+    this.canvasBounds = rubber.canvas[0].getBoundingClientRect();
+    this.ctx = rubber.canvas[0].getContext('2d');
+    this.img = document.createElement('img');
+    this.imgName = 'lucas.png';
+    this.img.src=this.imgName;
+    this.boundingWidth = this.img.width;
+    this.boundingHeight = this.img.height;
+    this.state = 'stand';
+    this.stateCount = null;
+    this.sourceWidth = null;
+    this.sourceHeight = null;
+    this.sourceX = null;
+    this.sourceY = null;
+    this.x = 0;
+    this.y = 0;
+    this.velY = 0;
+    this.velX = 0;
+    this.setSource(this);
+}
+
+Player.prototype.setSource = function(){
+    switch(this.imgName){
+    case 'lucas.png':
+	this.sourceWidth = 40;
+	this.sourceHeight = 50;
+	this.sourceX = this.sourceWidth;
+	this.sourceY = 0;
+	this.y = this.boundingHeight-this.sourceHeight;
+	break;
+    }
+    //this.checkSource();    
+}
+
+Player.prototype.checkSource = function(){
+    switch(this.imgName){
+    case 'lucas.png':
+	switch(this.state){
+	case 'stand':
+	    this.sourceY = 0
+	    this.stateCount = 3;
+	    break;
+	case 'run':
+	    this.sourceY = this.sourceHeight;
+	    this.stateCount = 7;
+	    break;
+	case 'jump':
+	    this.sourceY = this.sourceHeight * 2;
+	    this.stateCount = 8;
+	    break;
+	}
+	break;
+    }
+}
+
+Player.prototype.jump = function(){
+    this.state = 'jump';
+    if(this.y > this.rubber.height/2){    
+	if(this.velY < 20){
+	    this.velY -= 2;
+	}
+	this.y += this.velY;
+    }
+    
+    else{
+	if(this.y < this.boundingHeight-this.sourceHeight){
+	    this.velY += 2;
+	}
+	this.y += this.velY;
+    }
+}
+
+
+Player.prototype.move = function(){
+    this.state = 'run';
+    if(this.velX < 20){
+	this.velX += 2;
+    }
+    this.x += this.velX;
+    this.checkSource();
+}
+
+Player.prototype.draw = function(){
+    this.checkSource();    
+    this.ctx.drawImage(this.img,this.sourceX,this.sourceY,this.sourceWidth,this.sourceHeight,this.x,this.y,this.sourceWidth,this.sourceHeight);
+    if((this.sourceX % (this.sourceWidth * this.stateCount)) == 0){
+	this.sourceX = this.sourceWidth;
+    }
+    else{
+	this.sourceX += this.sourceWidth;
+    }
+}
+
+Rubber.prototype.draw = function(){
+    this.ctx.clearRect(0,0,this.width,this.height);
+    this.ctx.fillStyle = this.background;
+    this.ctx.strokeRect(0,0,this.width,this.height);
+    this.player.draw();
+}
+
 function initComponents()
 {
 	initButtons();
@@ -22,6 +142,11 @@ function initComponents()
 	initDictionary();
 
 	start();
+
+	rubber = new Rubber();    
+    setInterval(function(){rubber.draw()}, 166);
+    setInterval(function(){rubber.player.move()}, 166);
+    //setInterval(function(){rubber.player.jump()}, 166);
 }
 
 function initButtons()
