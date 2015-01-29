@@ -20,133 +20,343 @@ var img;
 
 //craft.js
 //impact.js
-
 function Rubber(canvasID) {
-    this.canvas = $('#canvas');
-    this.ctx = this.canvas[0].getContext('2d');
-    this.width = this.canvas[0].width;
-    this.height = this.canvas[0].height;
-    this.rect = this.canvas[0].getBoundingClientRect();
-    this.background = '#FFFFFF';
-    this.canvas.css('cursor','pointer');
-    this.ctx.font = '64pt Arial';
-    this.ctx.textAlign = 'center';
-    this.player = new Player(this);
+  this.canvas = $('#canvas');
+  this.ctx = this.canvas[0].getContext('2d');
+  this.width = this.canvas[0].width;
+  this.height = this.canvas[0].height;
+  this.rect = this.canvas[0].getBoundingClientRect();
+  this.background = '#43B4FB';
+  this.canvas.css('cursor','pointer');
+  this.ctx.font = '64pt Arial';
+  this.ctx.textAlign = 'center';
+  this.track = new Background(this, 'track', 'plain');
+  this.grass = new Background(this, 'grass', 'scroll');
+  this.stands = new Background(this, 'stands', 'scroll');
+  this.fans = new Background(this, 'fans', 'scroll');
+  this.mountains = new Background(this, 'mountains', 'scroll');
+  this.player = new Player(this, 'lucas', 'stand');
+  this.shadow = new Player(this, 'shadow', 'stand');
 }
 
-function Player(rubber){
-    this.rubber = rubber;
-    this.canvasBounds = rubber.canvas[0].getBoundingClientRect();
-    this.ctx = rubber.canvas[0].getContext('2d');
-    this.img = document.createElement('img');
-    this.imgName = 'lucas.png';
-    this.img.src=this.imgName;
-    this.boundingWidth = this.img.width;
-    this.boundingHeight = this.img.height;
-    this.state = 'stand';
-    this.stateCount = null;
-    this.sourceWidth = null;
-    this.sourceHeight = null;
-    this.sourceX = null;
-    this.sourceY = null;
-    this.x = 0;
-    this.y = 0;
-    this.velY = 0;
-    this.velX = 0;
-    this.setSource(this);
+function Background(rubber, name, state){
+  this.rubber = rubber;
+  this.canvasBounds = rubber.canvas[0].getBoundingClientRect();
+  this.ctx = rubber.canvas[0].getContext('2d');
+  this.img = document.createElement('img');
+  this.imgName = 'Images/backgroundSprite.png';
+  this.name = name;
+  this.img.src=this.imgName;
+  this.boundingWidth = this.img.width;
+  this.boundingHeight = this.img.height;
+  this.state = state;
+  this.stateCount = null;
+  this.sourceWidth = null;
+  this.sourceHeight = null;
+  this.sourceX = null;
+  this.sourceY = null;
+  this.x = 0;
+  this.y = 0;
+  this.offsetX = 0;
+  this.offsetY = 0;
+  this.velY = 0;
+  this.velX = 0;
+  this.resizeWitdth = 0;
+  this.resizeHeight = 0;
+  this.setSource(this);
 }
+
+
+Background.prototype.setSource = function(){
+  switch(this.name){
+  case 'track':
+    this.sourceWidth = 28;
+    this.sourceHeight = 24;
+    this.sourceX = 3;
+    this.sourceY = 17;
+    this.y = this.rubber.height-this.sourceHeight;
+    break;
+  case 'grass':
+    this.sourceWidth = 245;
+    this.sourceHeight = 24;
+    this.sourceX = 4;
+    this.sourceY = 86;
+    this.x = this.rubber.width-this.sourceWidth;
+    this.y = this.rubber.height-(this.sourceHeight+this.rubber.track.sourceHeight);
+    break;
+  case 'stands':
+    this.sourceWidth = 23;
+    this.sourceHeight = 27;
+    this.sourceX = 91;
+    this.sourceY = 110;
+    this.x = this.rubber.width-this.sourceWidth;
+    this.y = this.rubber.height-(this.sourceHeight+this.rubber.grass.sourceHeight+this.rubber.track.sourceHeight);
+    break;
+  case 'fans':
+    this.sourceWidth = 25;
+    this.sourceHeight = 22;
+    this.sourceX = 120;
+    this.sourceY = 110;
+    this.x = this.rubber.width-this.sourceWidth;
+    this.y = this.rubber.height-(this.sourceHeight+this.rubber.stands.sourceHeight+this.rubber.grass.sourceHeight+this.rubber.track.sourceHeight);
+    break;
+  case 'mountains':
+    this.sourceWidth = 78;
+    this.sourceHeight = 26;
+    this.sourceX = 114;
+    this.sourceY = 149;
+    this.x = this.rubber.width-this.sourceWidth;
+    this.y = this.rubber.height-(this.sourceHeight+this.rubber.fans.sourceHeight+this.rubber.stands.sourceHeight+this.rubber.grass.sourceHeight+this.rubber.track.sourceHeight);
+    break;
+  }
+}
+
+Background.prototype.draw = function(){
+  this.checkSource();    
+  this.ctx.drawImage(this.img,this.sourceX,this.sourceY,this.sourceWidth,this.sourceHeight,(this.x+this.offsetX),(this.y+this.offsetY),this.sourceWidth,this.sourceHeight);
+}
+
+Background.prototype.checkSource = function(){
+  switch(this.name){
+  case 'track':
+    switch(this.state){
+    case 'plain':
+      this.sourceY = 17;
+      this.stateCount = 1;
+      break;
+    }
+    break;
+  case 'grass':
+    this.sourceY = 86;
+    this.stateCount = 1;
+    break;
+  case 'stands':
+    this.sourceY = 110;
+    this.stateCount = 1;
+    break;
+  case 'fans':
+    this.sourceY = 110;
+    this.stateCount = 1;
+    break;
+  case 'mountains':
+    this.sourceY = 149;
+    this.stateCount = 1;
+    break;
+  }
+}
+
+Background.prototype.stretch = function(){
+  this.state = 'plain';
+  while(this.x < this.rubber.width){
+    this.x += this.sourceWidth;
+    this.draw();
+  }
+  this.x = 0;
+}
+
+Background.prototype.scroll = function(){
+  this.state = 'scroll';
+  switch(this.name){
+  case 'track':
+    this.offsetX = 0;
+    break;
+  case 'grass':
+    this.offsetX -= 4;
+    break;
+  case 'stands':
+    this.offsetX -= 3;
+    break;
+  case 'fans':
+    this.offsetX -= 3;
+    break;
+  case 'mountains':
+    this.offsetX -= 1;
+    break;
+  }
+  while((this.x+this.offsetX) < this.rubber.width){
+    this.x += this.sourceWidth;
+    this.draw();
+  }
+  this.x = 0;
+}
+
+function Player(rubber, name, state){
+  this.rubber = rubber;
+  this.canvasBounds = rubber.canvas[0].getBoundingClientRect();
+  this.ctx = rubber.canvas[0].getContext('2d');
+  this.img = document.createElement('img');
+  this.imgName = 'Images/lucas.png';
+  this.img.src=this.imgName;
+  this.name = name;
+  this.boundingWidth = this.img.width;
+  this.boundingHeight = this.img.height;
+  this.state = state;
+  this.stateCount = null;
+  this.sourceWidth = null;
+  this.sourceHeight = null;
+  this.sourceX = null;
+  this.sourceY = null;
+  this.x = 0;
+  this.y = 0;
+  this.offsetX = 0;
+  this.offsetY = 0;
+  this.velY = 0;
+  this.velX = 0;
+  this.Multiplier = 0;
+  this.setSource(this);
+}
+
 
 Player.prototype.setSource = function(){
-    switch(this.imgName){
-    case 'lucas.png':
-	this.sourceWidth = 40;
-	this.sourceHeight = 50;
-	this.sourceX = this.sourceWidth;
-	this.sourceY = 0;
-	this.y = this.boundingHeight-this.sourceHeight;
-	break;
-    }
-    //this.checkSource();    
+  switch(this.name){
+  case 'lucas':
+    this.sourceWidth = 40;
+    this.sourceHeight = 50;
+    this.sourceX = this.sourceWidth;
+    this.sourceY = 0;
+    this.y = this.boundingHeight-this.sourceHeight;
+    this.Multiplier = (3 * Math.random());
+    break;
+  case 'shadow':
+    this.sourceWidth = 40;
+    this.sourceHeight = 50;
+    this.sourceX = this.sourceWidth;
+    this.sourceY = 0;
+    this.y = this.boundingHeight-this.sourceHeight;
+    this.Multiplier = (3 * Math.random());
+    break;
+  }
 }
 
 Player.prototype.checkSource = function(){
-    switch(this.imgName){
-    case 'lucas.png':
-	switch(this.state){
-	case 'stand':
-	    this.sourceY = 0
-	    this.stateCount = 3;
-	    break;
-	case 'run':
-	    this.sourceY = this.sourceHeight;
-	    this.stateCount = 7;
-	    break;
-	case 'jump':
-	    this.sourceY = this.sourceHeight * 2;
-	    this.stateCount = 8;
-	    break;
-	}
-	break;
+  switch(this.name){
+  case 'lucas':
+    switch(this.state){
+    case 'stand':
+      this.sourceY = 0
+      this.stateCount = 3;
+      break;
+    case 'run':
+      this.Multiplier = (3 * Math.random());
+      this.sourceY = this.sourceHeight;
+      this.stateCount = 7;
+      break;
+    case 'jump':
+      this.sourceY = this.sourceHeight * 2;
+      this.stateCount = 8;
+      break;
     }
+    break;
+  case 'shadow':
+    switch(this.state){
+    case 'stand':
+      this.sourceY = 0
+      this.stateCount = 3;
+      break;
+    case 'run':
+      this.Multiplier = (3 * Math.random());
+      this.sourceY = this.sourceHeight;
+      this.stateCount = 7;
+      break;
+    case 'jump':
+      this.sourceY = this.sourceHeight * 2;
+      this.stateCount = 8;
+      break;
+    }
+    break;
+  }
 }
 
-Player.prototype.jump = function(){
-    this.state = 'jump';
-    if(this.y > this.rubber.height/2){    
-	if(this.velY < 20){
-	    this.velY -= 2;
-	}
-	this.y += this.velY;
+Player.prototype.jump = function(){ //contains error, needs work
+  this.state = 'jump';
+  if(this.y > this.rubber.height/3){    
+    if(this.velY < 20){
+      this.velY -= 2;
     }
-    
-    else{
-	if(this.y < this.boundingHeight-this.sourceHeight){
-	    this.velY += 2;
-	}
-	this.y += this.velY;
+    this.y += this.velY;
+  }
+  else{
+    if(this.y < this.boundingHeight-this.sourceHeight){
+      this.velY += 2;
     }
+    this.y += this.velY;
+  }
 }
 
 
-Player.prototype.move = function(){
-    this.state = 'run';
-    if(this.velX < 20){
-	this.velX += 2;
+Player.prototype.run = function(){
+  this.state = 'run';
+  if(this.x < ((this.rubber.width-(this.sourceWidth))/3)){
+    if(this.velX < 9){
+      this.velX += (3 + this.Multiplier);
     }
-    this.x += this.velX;
-    this.checkSource();
+  }
+  else if(this.x > (((this.rubber.width-(this.sourceWidth))/3)*2)){
+    if(this.velX > -9){
+      this.velX -= (3 + this.Multiplier);
+    }
+  }
+  this.x += this.velX;
+}
+
+Player.prototype.stand = function(){
+  this.state = 'stand';
 }
 
 Player.prototype.draw = function(){
-    this.checkSource();    
-    this.ctx.drawImage(this.img,this.sourceX,this.sourceY,this.sourceWidth,this.sourceHeight,this.x,this.y,this.sourceWidth,this.sourceHeight);
-    if((this.sourceX % (this.sourceWidth * this.stateCount)) == 0){
-	this.sourceX = this.sourceWidth;
-    }
-    else{
-	this.sourceX += this.sourceWidth;
-    }
+  this.checkSource();    
+  this.ctx.drawImage(this.img,this.sourceX,this.sourceY,this.sourceWidth,this.sourceHeight,(this.x+this.offsetX),(this.y+this.offsetY),this.sourceWidth,this.sourceHeight);
+  if((this.sourceX % (this.sourceWidth * this.stateCount)) == 0){
+    this.sourceX = this.sourceWidth;
+  }
+  else{
+    this.sourceX += this.sourceWidth;
+  }
 }
 
 Rubber.prototype.draw = function(){
-    this.ctx.clearRect(0,0,this.width,this.height);
-    this.ctx.fillStyle = this.background;
-    this.ctx.strokeRect(0,0,this.width,this.height);
-    this.player.draw();
+  this.ctx.clearRect(0,0,this.width,this.height);
+  this.ctx.fillStyle = this.background;
+  this.ctx.fillRect(0,0,this.width,this.height);
+  this.mountains.draw();
+  this.mountains.scroll();
+  this.fans.draw();
+  this.fans.scroll();
+  this.stands.draw();
+  this.stands.scroll();
+  this.grass.draw();
+  this.grass.scroll();
+  this.track.draw();
+  this.track.stretch();
+  this.player.draw();
+  this.shadow.draw();
 }
 
+// main
+$(document).ready(function(){
+  initComponents();    
+});
+
+// methods
 function initComponents()
 {
-	initButtons();
+  rubber = new Rubber();    
 
-	initDictionary();
+  setInterval(function(){rubber.draw()}, 133);
+  //setInterval(function(){rubber.fans.scroll()}, 166);
+  //setInterval(function(){rubber.track.plain()}, 166);
+  //setInterval(function(){rubber.player.stand()}, 166);
+  setInterval(function(){rubber.player.run()}, 133);
+  setInterval(function(){rubber.shadow.run()}, 133);
 
-	start();
+  initButtons();
 
-	rubber = new Rubber();    
-    setInterval(function(){rubber.draw()}, 166);
-    setInterval(function(){rubber.player.move()}, 166);
-    //setInterval(function(){rubber.player.jump()}, 166);
+  initDictionary();
+
+  start();
+
+
+  //rubber.draw();
 }
 
 function initButtons()
