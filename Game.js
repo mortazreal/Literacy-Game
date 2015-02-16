@@ -8,18 +8,12 @@ var dictionary;
 var vol;
 var signal;
 var library;
-
-// main
-$(document).ready(function(){
-	initComponents();
-});
-
-// methods
 var rubber;
 var img;
 
 //craft.js
 //impact.js
+
 function Rubber(canvasID) {
   this.canvas = $('#canvas');
   this.ctx = this.canvas[0].getContext('2d');
@@ -30,7 +24,9 @@ function Rubber(canvasID) {
   this.canvas.css('cursor','pointer');
   this.ctx.font = '64pt Arial';
   this.ctx.textAlign = 'center';
-  this.track = new Background(this, 'track', 'plain');
+  this.imgFolder = 'Images/';
+  this.trackp = new Background(this, 'trackp', 'plain');
+  this.tracks = new Background(this, 'tracks', 'plain');
   this.grass = new Background(this, 'grass', 'scroll');
   this.stands = new Background(this, 'stands', 'scroll');
   this.fans = new Background(this, 'fans', 'scroll');
@@ -69,12 +65,19 @@ function Background(rubber, name, state){
 
 Background.prototype.setSource = function(){
   switch(this.name){
-  case 'track':
+  case 'trackp':
     this.sourceWidth = 28;
     this.sourceHeight = 24;
     this.sourceX = 3;
     this.sourceY = 17;
     this.y = this.rubber.height-this.sourceHeight;
+    break;
+  case 'tracks':
+    this.sourceWidth = 28;
+    this.sourceHeight = 24;
+    this.sourceX = 3;
+    this.sourceY = 17;
+    this.y = this.rubber.trackp.y-(this.sourceHeight-5);
     break;
   case 'grass':
     this.sourceWidth = 245;
@@ -82,7 +85,7 @@ Background.prototype.setSource = function(){
     this.sourceX = 4;
     this.sourceY = 86;
     this.x = this.rubber.width-this.sourceWidth;
-    this.y = this.rubber.height-(this.sourceHeight+this.rubber.track.sourceHeight);
+    this.y = this.rubber.tracks.y-this.sourceHeight;
     break;
   case 'stands':
     this.sourceWidth = 23;
@@ -90,7 +93,7 @@ Background.prototype.setSource = function(){
     this.sourceX = 91;
     this.sourceY = 110;
     this.x = this.rubber.width-this.sourceWidth;
-    this.y = this.rubber.height-(this.sourceHeight+this.rubber.grass.sourceHeight+this.rubber.track.sourceHeight);
+    this.y = this.rubber.grass.y-this.sourceHeight;
     break;
   case 'fans':
     this.sourceWidth = 25;
@@ -98,7 +101,7 @@ Background.prototype.setSource = function(){
     this.sourceX = 120;
     this.sourceY = 110;
     this.x = this.rubber.width-this.sourceWidth;
-    this.y = this.rubber.height-(this.sourceHeight+this.rubber.stands.sourceHeight+this.rubber.grass.sourceHeight+this.rubber.track.sourceHeight);
+    this.y = this.rubber.stands.y-this.sourceHeight;
     break;
   case 'mountains':
     this.sourceWidth = 78;
@@ -106,7 +109,7 @@ Background.prototype.setSource = function(){
     this.sourceX = 114;
     this.sourceY = 149;
     this.x = this.rubber.width-this.sourceWidth;
-    this.y = this.rubber.height-(this.sourceHeight+this.rubber.fans.sourceHeight+this.rubber.stands.sourceHeight+this.rubber.grass.sourceHeight+this.rubber.track.sourceHeight);
+    this.y = this.rubber.fans.y-this.sourceHeight;
     break;
   }
 }
@@ -164,10 +167,10 @@ Background.prototype.scroll = function(){
     this.offsetX -= 4;
     break;
   case 'stands':
-    this.offsetX -= 3;
+    this.offsetX -= 2;
     break;
   case 'fans':
-    this.offsetX -= 3;
+    this.offsetX -= 2;
     break;
   case 'mountains':
     this.offsetX -= 1;
@@ -185,9 +188,9 @@ function Player(rubber, name, state){
   this.canvasBounds = rubber.canvas[0].getBoundingClientRect();
   this.ctx = rubber.canvas[0].getContext('2d');
   this.img = document.createElement('img');
-  this.imgName = 'Images/lucas.png';
-  this.img.src=this.imgName;
   this.name = name;
+  this.imgName = this.rubber.imgFolder.concat(this.name.concat('.png'));
+  this.img.src=this.imgName;
   this.boundingWidth = this.img.width;
   this.boundingHeight = this.img.height;
   this.state = state;
@@ -206,6 +209,9 @@ function Player(rubber, name, state){
   this.setSource(this);
 }
 
+Player.prototype.setState = function(state){
+  this.state = state;
+}
 
 Player.prototype.setSource = function(){
   switch(this.name){
@@ -222,10 +228,11 @@ Player.prototype.setSource = function(){
     this.sourceHeight = 50;
     this.sourceX = this.sourceWidth;
     this.sourceY = 0;
-    this.y = this.boundingHeight-this.sourceHeight;
+    this.y = this.boundingHeight-((this.rubber.trackp.y-7)-this.sourceHeight);
     this.Multiplier = (3 * Math.random());
     break;
   }
+
 }
 
 Player.prototype.checkSource = function(){
@@ -235,54 +242,55 @@ Player.prototype.checkSource = function(){
     case 'stand':
       this.sourceY = 0
       this.stateCount = 3;
+      this.stand();
       break;
     case 'run':
       this.Multiplier = (3 * Math.random());
       this.sourceY = this.sourceHeight;
       this.stateCount = 7;
+      this.run();
       break;
     case 'jump':
-      this.sourceY = this.sourceHeight * 2;
-      this.stateCount = 8;
+      this.Multiplier = (3 * Math.random());
+      this.sourceY = this.sourceHeight;
+      this.stateCount = 7;
+      this.jump();
+      //this.sourceY = this.sourceHeight * 2;
+      //this.stateCount = 8;
+      //this.jump();
       break;
     }
-    break;
+  break;
   case 'shadow':
     switch(this.state){
     case 'stand':
       this.sourceY = 0
       this.stateCount = 3;
+      this.stand();
       break;
     case 'run':
       this.Multiplier = (3 * Math.random());
       this.sourceY = this.sourceHeight;
       this.stateCount = 7;
+      this.run();
       break;
     case 'jump':
-      this.sourceY = this.sourceHeight * 2;
-      this.stateCount = 8;
+      this.Multiplier = (3 * Math.random());
+      this.sourceY = this.sourceHeight;
+      this.stateCount = 7;
+      this.jump();
+      //this.sourceY = this.sourceHeight * 2;
+      //this.stateCount = 8;
+      //this.jump();
       break;
     }
-    break;
+  break;
   }
 }
 
-Player.prototype.jump = function(){ //contains error, needs work
-  this.state = 'jump';
-  if(this.y > this.rubber.height/3){    
-    if(this.velY < 20){
-      this.velY -= 2;
-    }
-    this.y += this.velY;
-  }
-  else{
-    if(this.y < this.boundingHeight-this.sourceHeight){
-      this.velY += 2;
-    }
-    this.y += this.velY;
-  }
+Player.prototype.stand = function(){
+  this.state = 'stand';
 }
-
 
 Player.prototype.run = function(){
   this.state = 'run';
@@ -299,8 +307,41 @@ Player.prototype.run = function(){
   this.x += this.velX;
 }
 
-Player.prototype.stand = function(){
-  this.state = 'stand';
+Player.prototype.jump = function(){ //contains error, needs work
+  this.state = 'jump';
+
+  if(this.x < ((this.rubber.width-(this.sourceWidth))/3)){
+    if(this.velX < 8){
+      this.velX = 2;
+    }
+  }
+/*  else if(this.x > (((this.rubber.width-(this.sourceWidth))/3)*2)){
+   if(this.velX > -9){
+      this.velX = 3;
+    }
+  }
+*/
+  if(this.velX < 0)
+    this.velX = 2;
+  this.x += this.velX;
+
+  if(this.y > this.rubber.height/3){    
+    if(this.velY < 16){
+      this.velY -= 2;
+    }
+    this.y += this.velY;
+  }
+  else{
+    if(this.y < this.boundingHeight-this.sourceHeight){
+      this.velY += 2;
+    }
+    this.y += this.velY;
+  }
+
+  if(this.y == this.boundingHeight-this.sourceHeight){
+    this.rubber.player.setState('run');
+    return;
+  }
 }
 
 Player.prototype.draw = function(){
@@ -326,15 +367,17 @@ Rubber.prototype.draw = function(){
   this.stands.scroll();
   this.grass.draw();
   this.grass.scroll();
-  this.track.draw();
-  this.track.stretch();
-  this.player.draw();
+  this.tracks.draw();
+  this.tracks.stretch();
+  this.trackp.draw();
+  this.trackp.stretch();
   this.shadow.draw();
+  this.player.draw();
 }
 
 // main
 $(document).ready(function(){
-  initComponents();    
+  initComponents();  
 });
 
 // methods
@@ -342,293 +385,308 @@ function initComponents()
 {
   rubber = new Rubber();    
 
+  rubber.player.setState("run");
+  rubber.shadow.setState("run");
   setInterval(function(){rubber.draw()}, 133);
-  //setInterval(function(){rubber.fans.scroll()}, 166);
-  //setInterval(function(){rubber.track.plain()}, 166);
-  //setInterval(function(){rubber.player.stand()}, 166);
-  setInterval(function(){rubber.player.run()}, 133);
-  setInterval(function(){rubber.shadow.run()}, 133);
-
   initButtons();
 
   initDictionary();
 
+  initStatistics();
+
   start();
+}
 
-
-  //rubber.draw();
+function initStatistics(){
+    // create button
+  var temp = document.createElement("TEXTAREA");
+  var attempt = 0;
+  var t = document.createTextNode(attempt);
+  temp.appendChild(t);
+  stats.appendChild(temp);
+  
+  // styleds
+  temp.style.width = '20%';
+   
+  // add new line
+  temp = document.createElement('br');
+  stats.appendChild(temp);
 }
 
 function initButtons()
 {
-	// set button properties
-	button1 = document.getElementById('button1');
-	button1.style.position = 'absolute';
-	button1.innerHTML = "button1";
-	button1.style.height = '20%';
-	button1.style.width = '20%';
-	button1.style.left = '25%';
-	button1.style.top = '25%';
+  // set button properties
+  button1 = document.getElementById('button1');
+  button1.style.position = 'absolute';
+  button1.innerHTML = "button1";
+  button1.style.height = '20%';
+  button1.style.width = '20%';
+  button1.style.left = '25%';
+  button1.style.top = '25%';
 
-	button2 = document.getElementById('button2');
-	button2.style.position = 'absolute';
-	button2.innerHTML = "button2";
-	button2.style.height = '20%';
-	button2.style.width = '20%';
-	button2.style.left = '55%';
-	button2.style.top = '25%';
+  button2 = document.getElementById('button2');
+  button2.style.position = 'absolute';
+  button2.innerHTML = "button2";
+  button2.style.height = '20%';
+  button2.style.width = '20%';
+  button2.style.left = '55%';
+  button2.style.top = '25%';
 
-	button3 = document.getElementById('button3');
-	button3.style.position = 'absolute';
-	button3.innerHTML = "button3";
-	button3.style.height = '20%';
-	button3.style.width = '20%';
-	button3.style.left = '25%';
-	button3.style.top = '55%';
+  button3 = document.getElementById('button3');
+  button3.style.position = 'absolute';
+  button3.innerHTML = "button3";
+  button3.style.height = '20%';
+  button3.style.width = '20%';
+  button3.style.left = '25%';
+  button3.style.top = '55%';
 
-	button4 = document.getElementById('button4');
-	button4.style.position = 'absolute';
-	button4.innerHTML = "button4";
-	button4.style.height = '20%';
-	button4.style.width = '20%';
-	button4.style.left = '55%';
-	button4.style.top = '55%';
+  button4 = document.getElementById('button4');
+  button4.style.position = 'absolute';
+  button4.innerHTML = "button4";
+  button4.style.height = '20%';
+  button4.style.width = '20%';
+  button4.style.left = '55%';
+  button4.style.top = '55%';
 }
 
 function initDictionary()
 {
-	// set library field
-	library = document.getElementById('library');
-	library.style.position = 'absolute';
-	library.style.height = '60%';
-	library.style.width = '18%';
-	library.style.left = '3%';
-	library.style.top = '3%';
-	
-	// import dictionaries
-	dictionary = [{name:'k.1', words:[['am','am'],['I','I'],['little','little'],['the','the'],['a','ay'],['to','to']]},
-	              {name:'k.2', words:[['have','have'],['is','is'],['like','like'],['my','my'],['we','we'],['for','for'],['he','he']]},
-	              {name:'k.3', words:[['me','me'],['with','with'],['she','she'],['look','look'],['see','see'],['of','of'],['they','they'],['you','you']]},
-	              {name:'k.4', words:[['are','are'],['do','do'],['that','that'],['five','five'],['four','four'],['one','one'],['three','three'],['two','two'],['from','from'],['go','go'],['here','here']]}
-	];
-	//var bookshelf = document.URL.substring(0, document.URL.length-("/demo.js/").length);
-	for (var i = 0; i < dictionary.length; i++)
-	{
-		// create button
-		var temp = document.createElement('button');
-		library.appendChild(temp);
-		temp.appendChild(document.createTextNode(dictionary[i].name));
-		temp.volnum = i;
-		temp.onclick = function() {vol = this.volnum; console.log(this.volnum);};
-		temp.style.width = '100%';
-		
-		// add new line
-		temp = document.createElement('br');
-		library.appendChild(temp);
-	}
-	vol = 0;
-	
-	// set redo button
-	var redo = document.getElementById('replay');
-	redo.style.position = 'absolute';
-	redo.style.fontSize = '20pt';
-	redo.style.height = '20%';
-	redo.style.width = '18%';
-	redo.style.left = '3%';
-	redo.style.top = '66%';
-	redo.onclick = function() {
-		var answord = '';
-		switch (answer)
-		{
-			case 1:
-			answord = button1.innerHTML;
-			break;
-			case 2:
-			answord = button2.innerHTML;
-			break;
-			case 3:
-			answord = button3.innerHTML;
-			break;
-			case 4:
-			answord = button4.innerHTML;
-			break;
-		}
-		var audio = new Audio();
-		audio.src =('http://demo.thewynngroup.net/audio.php?tl=en&q=Which%20is%20'+answord);
-		audio.play();
-	};
+  // set library field
+  library = document.getElementById('library');
+  library.style.position = 'absolute';
+  library.style.height = '60%';
+  library.style.width = '18%';
+  library.style.left = '3%';
+  library.style.top = '3%';
+  
+  // import dictionaries
+  dictionary = [{name:'k.1', words:[['am','am'],['I','I'],['little','little'],['the','the'],['a','ay'],['to','to']]},
+		{name:'k.2', words:[['have','have'],['is','is'],['like','like'],['my','my'],['we','we'],['for','for'],['he','he']]},
+		{name:'k.3', words:[['me','me'],['with','with'],['she','she'],['look','look'],['see','see'],['of','of'],['they','they'],['you','you']]},
+		{name:'k.4', words:[['are','are'],['do','do'],['that','that'],['five','five'],['four','four'],['one','one'],['three','three'],['two','two'],['from','from'],['go','go'],['here','here']]}
+	       ];
+  //var bookshelf = document.URL.substring(0, document.URL.length-("/demo.js/").length);
+  for (var i = 0; i < dictionary.length; i++)
+  {
+    // create button
+    var temp = document.createElement('button');
+    library.appendChild(temp);
+    temp.appendChild(document.createTextNode(dictionary[i].name));
+    temp.volnum = i;
+    temp.onclick = function() {vol = this.volnum; console.log(this.volnum);};
+    temp.style.width = '100%';
+    
+    // add new line
+    temp = document.createElement('br');
+    library.appendChild(temp);
+  }
+  vol = 0;
+  
+  // set redo button
+  var redo = document.getElementById('replay');
+  redo.style.position = 'absolute';
+  redo.style.fontSize = '20pt';
+  redo.style.height = '20%';
+  redo.style.width = '18%';
+  redo.style.left = '3%';
+  redo.style.top = '66%';
+  redo.onclick = function() {
+    var answord = '';
+    switch (answer)
+    {
+    case 1:
+      answord = button1.innerHTML;
+      break;
+    case 2:
+      answord = button2.innerHTML;
+      break;
+    case 3:
+      answord = button3.innerHTML;
+      break;
+    case 4:
+      answord = button4.innerHTML;
+      break;
+    }
+    var audio = new Audio();
+    audio.src =('http://demo.thewynngroup.net/audio.php?tl=en&q=Which%20is%20'+answord);
+    audio.play();
+  };
 }
 
 function start()
 {
-	wait(500);
+  wait(500);
 
-	// create list
-	var tempnum;
-	var templist = new Array();
-	templist[0] = Math.floor(Math.random() * dictionary[vol].words.length);
-	for (var i = 1; i < 4; i++)
+  // create list
+  var tempnum;
+  var templist = new Array();
+  templist[0] = Math.floor(Math.random() * dictionary[vol].words.length);
+  for (var i = 1; i < 4; i++)
+  {
+    var ts = false;
+    tempnum = Math.floor(Math.random() * dictionary[vol].words.length);
+    
+    while (!ts)
+    {
+      tempnum = Math.floor(Math.random() * dictionary[vol].words.length);
+      
+      ts = true;
+      for(var j = 0; j < templist.length; j++)
+      {
+	if (tempnum == templist[j])
 	{
-		var ts = false;
-		tempnum = Math.floor(Math.random() * dictionary[vol].words.length);
-		
-		while (!ts)
-		{	
-			tempnum = Math.floor(Math.random() * dictionary[vol].words.length);
-			
-			ts = true;
-			for(var j = 0; j < templist.length; j++)
-			{
-				if (tempnum == templist[j])
-				{
-					ts = false;
-				} 
-			}
-		}
-		
-		templist[i] = tempnum;
-	}
+	  ts = false;
+	} 
+      }
+    }
+    
+    templist[i] = tempnum;
+  }
 
-	// set buttons
-	button1.innerHTML = dictionary[vol].words[templist[0]][0];
-	button1.phonetic = dictionary[vol].words[templist[0]][1];
-	button2.innerHTML = dictionary[vol].words[templist[1]][0];
-	button2.phonetic = dictionary[vol].words[templist[1]][1];
-	button3.innerHTML = dictionary[vol].words[templist[2]][0];
-	button3.phonetic = dictionary[vol].words[templist[2]][1];
-	button4.innerHTML = dictionary[vol].words[templist[3]][0];
-	button4.phonetic = dictionary[vol].words[templist[3]][1];
+  // set buttons
+  button1.innerHTML = dictionary[vol].words[templist[0]][0];
+  button1.phonetic = dictionary[vol].words[templist[0]][1];
+  button2.innerHTML = dictionary[vol].words[templist[1]][0];
+  button2.phonetic = dictionary[vol].words[templist[1]][1];
+  button3.innerHTML = dictionary[vol].words[templist[2]][0];
+  button3.phonetic = dictionary[vol].words[templist[2]][1];
+  button4.innerHTML = dictionary[vol].words[templist[3]][0];
+  button4.phonetic = dictionary[vol].words[templist[3]][1];
 
-	// set answer
-	answer = Math.floor(Math.random() * 4) + 1;
-	
-	// say word
-	var answord = '';
-	switch (answer)
-	{
-		case 1:
-		answord = button1.phonetic;
-		break;
-		case 2:
-		answord = button2.phonetic;
-		break;
-		case 3:
-		answord = button3.phonetic;
-		break;
-		case 4:
-		answord = button4.phonetic;
-		break;
-	}
-	var audio = new Audio();
-	audio.src =('http://demo.thewynngroup.net/audio.php?tl=en&q=Which%20is%20'+answord);
-	audio.play();
-	
-	console.log('ans:'+answer);
+  // set answer
+  answer = Math.floor(Math.random() * 4) + 1;
+  
+  // say word
+  var answord = '';
+  switch (answer)
+  {
+  case 1:
+    answord = button1.phonetic;
+    break;
+  case 2:
+    answord = button2.phonetic;
+    break;
+  case 3:
+    answord = button3.phonetic;
+    break;
+  case 4:
+    answord = button4.phonetic;
+    break;
+  }
+  var audio = new Audio();
+  audio.src =('http://demo.thewynngroup.net/audio.php?tl=en&q=Which%20is%20'+answord);
+  audio.play();
+  
+  console.log('ans:'+answer);
 }
 
 function guess(g)
 {
-	// put up click blocker
-	var block = document.createElement('button');
-	document.getElementsByTagName('body')[0].appendChild(block);
-	block.innerHTML = 'test';
-	block.style.position = 'absolute';
-	block.style.height = '80%';
-	block.style.width = '80%';
-	block.style.left = '10%';
-	block.style.top = '10%';
-	
-	// log word
-	var word = '';
-	switch (g)
-	{
-		case 1:
-		word = button1.phonetic;
-		break;
-		case 2:
-		word = button2.phonetic;
-		break;
-		case 3:
-		word = button3.phonetic;
-		break;
-		case 4:
-		word = button4.phonetic;
-		break;
-	}
-	
-	// log answer
-	var answord = '';
-	switch (answer)
-	{
-		case 1:
-		answord = button1.phonetic;
-		break;
-		case 2:
-		answord = button2.phonetic;
-		break;
-		case 3:
-		answord = button3.phonetic;
-		break;
-		case 4:
-		answord = button4.phonetic;
-		break;
-	}
-	
-	// check answer
-	if (answer == g)
-	{
-		// correct
-		signal = document.createElement('button');
-		document.getElementsByTagName('body')[0].appendChild(signal);
-		signal.style.position = 'absolute';
-		signal.innerHTML = "Congratulations!";
-		signal.style.fontSize = '20pt';
-		signal.style.height = '20%';
-		signal.style.left = '40%';
-		signal.style.top = '40%';
-		
-		var audio = new Audio();
-		audio.src =('http://demo.thewynngroup.net/audio.php?tl=en&q=Correct!%20That%20is%20'+word);
-		audio.onended = function() {start();signal.remove();};
-		audio.play();
-		
-		signal.onclick = function(){this.remove();};
-	} else
-	{
-		// incorrect
-		signal = document.createElement('button');
-		document.getElementsByTagName('body')[0].appendChild(signal);
-		signal.style.position = 'absolute';
-		signal.innerHTML = "Woops! try again";
-		signal.style.fontSize = '20pt';
-		signal.style.height = '20%';
-		signal.style.left = '40%';
-		signal.style.top = '40%';
-		
-		var audio = new Audio();
-		audio.src =('http://demo.thewynngroup.net/audio.php?tl=en&q=That%20is%20'+word+'.%20Try%20again... ');
-		audio.onended = function() {
-			audio.src =('http://demo.thewynngroup.net/audio.php?ie=utf-8&tl=en&q=Which%20is%20'+answord+'?');
-			audio.onended = function() {
-				signal.remove();
-			};
-			audio.play();
-			signal.remove();
-		};
-		audio.play();
+  // put up click blocker
+  var block = document.createElement('button');
+  document.getElementsByTagName('body')[0].appendChild(block);
+  block.innerHTML = 'test';
+  block.style.position = 'absolute';
+  block.style.height = '80%';
+  block.style.width = '80%';
+  block.style.left = '10%';
+  block.style.top = '10%';
+  
+  // log word
+  var word = '';
+  switch (g)
+  {
+  case 1:
+    word = button1.phonetic;
+    //rubber.player.setState("jump");
+    break;
+  case 2:
+    word = button2.phonetic;
+    //rubber.player.setState("jump");
+    break;
+  case 3:
+    word = button3.phonetic;
+    //rubber.player.setState("jump");
+    break;
+  case 4:
+    word = button4.phonetic;
+    //rubber.player.setState("jump");
+    break;
+  }
+  
+  // log answer
+  var answord = '';
+  switch (answer)
+  {
+  case 1:
+    answord = button1.phonetic;
+    break;
+  case 2:
+    answord = button2.phonetic;
+    break;
+  case 3:
+    answord = button3.phonetic;
+    break;
+  case 4:
+    answord = button4.phonetic;
+    break;
+  }
+  
+  // check answer
+  if (answer == g)
+  {
+    // correct
+    signal = document.createElement('button');
+    document.getElementsByTagName('body')[0].appendChild(signal);
+    signal.style.position = 'absolute';
+    signal.innerHTML = "Congratulations!";
+    signal.style.fontSize = '20pt';
+    signal.style.height = '20%';
+    signal.style.left = '40%';
+    signal.style.top = '40%';
+    
+    var audio = new Audio();
+    audio.src =('http://demo.thewynngroup.net/audio.php?tl=en&q=Correct!%20That%20is%20'+word);
+    audio.onended = function() {start();signal.remove();};
+    audio.play();
+    
+    signal.onclick = function(){this.remove();};
+  } else
+  {
+    // incorrect
+    signal = document.createElement('button');
+    document.getElementsByTagName('body')[0].appendChild(signal);
+    signal.style.position = 'absolute';
+    signal.innerHTML = "Woops! try again";
+    signal.style.fontSize = '20pt';
+    signal.style.height = '20%';
+    signal.style.left = '40%';
+    signal.style.top = '40%';
+    
+    var audio = new Audio();
+    audio.src =('http://demo.thewynngroup.net/audio.php?tl=en&q=That%20is%20'+word+'.%20Try%20again... ');
+    audio.onended = function() {
+      audio.src =('http://demo.thewynngroup.net/audio.php?ie=utf-8&tl=en&q=Which%20is%20'+answord+'?');
+      audio.onended = function() {
+	signal.remove();
+      };
+      audio.play();
+      signal.remove();
+    };
+    audio.play();
 
-		signal.onclick = function(){this.remove();};
-	}
-	
-	// remove click block
-	block.parentNode.removeChild(block);
+    signal.onclick = function(){this.remove();};
+  }
+  
+  // remove click block
+  block.parentNode.removeChild(block);
 }
 
 function wait(milliseconds)
 {
-	var starttime = new Date().getTime();
-	while ((new Date().getTime() - starttime) < milliseconds)
-	{
-		//console.log("sleeping: "+(new Date().getTime() - starttime));
-	}
+  var starttime = new Date().getTime();
+  while ((new Date().getTime() - starttime) < milliseconds)
+  {
+    //console.log("sleeping: "+(new Date().getTime() - starttime));
+  }
 }
