@@ -30,9 +30,14 @@ function Rubber(canvasID) {
   this.grass = new Background(this, 'grass', 'scroll');
   this.stands = new Background(this, 'stands', 'scroll');
   this.fans = new Background(this, 'fans', 'scroll');
+  this.cloud1 = new Background(this, 'wcloudsg', 'scroll');
+  this.clouds = [];
+  for(var i = 0; i < 3; i++){
+    this.clouds[i] = new Background(this, 'wcloudsg', 'scroll');
+  }
   this.mountains = new Background(this, 'mountains', 'scroll');
-  this.player = new Player(this, 'lucas', 'stand');
-  this.shadow = new Player(this, 'shadow', 'stand');
+  this.player = new Player(this, 'lucas', 'stand', 'female');
+  this.shadow = new Player(this, 'shadow', 'stand', 'female');
 }
 
 function Background(rubber, name, state){
@@ -57,8 +62,8 @@ function Background(rubber, name, state){
   this.offsetY = 0;
   this.velY = 0;
   this.velX = 0;
-  this.resizeWitdth = 0;
-  this.resizeHeight = 0;
+  this.scaleWitdth = 0;
+  this.scaleHeight = 0;
   this.setSource(this);
 }
 
@@ -70,6 +75,8 @@ Background.prototype.setSource = function(){
     this.sourceHeight = 24;
     this.sourceX = 3;
     this.sourceY = 17;
+    this.scaleWidth = 0;
+    this.scaleHeight = 0;
     this.y = this.rubber.height-this.sourceHeight;
     break;
   case 'tracks':
@@ -77,6 +84,8 @@ Background.prototype.setSource = function(){
     this.sourceHeight = 24;
     this.sourceX = 3;
     this.sourceY = 17;
+    this.scaleWidth = 0;
+    this.scaleHeight = 0;
     this.y = this.rubber.trackp.y-(this.sourceHeight-5);
     break;
   case 'grass':
@@ -84,6 +93,8 @@ Background.prototype.setSource = function(){
     this.sourceHeight = 24;
     this.sourceX = 4;
     this.sourceY = 86;
+    this.scaleWidth = 0;
+    this.scaleHeight = 0;
     this.x = this.rubber.width-this.sourceWidth;
     this.y = this.rubber.tracks.y-this.sourceHeight;
     break;
@@ -92,6 +103,8 @@ Background.prototype.setSource = function(){
     this.sourceHeight = 27;
     this.sourceX = 91;
     this.sourceY = 110;
+    this.scaleWidth = 0;
+    this.scaleHeight = 0;
     this.x = this.rubber.width-this.sourceWidth;
     this.y = this.rubber.grass.y-this.sourceHeight;
     break;
@@ -100,6 +113,8 @@ Background.prototype.setSource = function(){
     this.sourceHeight = 22;
     this.sourceX = 120;
     this.sourceY = 110;
+    this.scaleWidth = 0;
+    this.scaleHeight = 0;
     this.x = this.rubber.width-this.sourceWidth;
     this.y = this.rubber.stands.y-this.sourceHeight;
     break;
@@ -108,15 +123,26 @@ Background.prototype.setSource = function(){
     this.sourceHeight = 26;
     this.sourceX = 114;
     this.sourceY = 149;
+    this.scaleWidth = 0;
+    this.scaleHeight = 0;
     this.x = this.rubber.width-this.sourceWidth;
     this.y = this.rubber.fans.y-this.sourceHeight;
     break;
+  case 'wcloudsg':
+    this.sourceWidth = 60;
+    this.sourceHeight = 45;
+    this.sourceX = 60;
+    this.sourceY = 392;
+    this.scaleWidth = 45;
+    this.scaleHeight = 35;
+    this.x = this.rubber.width-this.sourceWidth;
+    this.y = this.rubber.stands.y-this.sourceHeight;
   }
 }
 
 Background.prototype.draw = function(){
   this.checkSource();    
-  this.ctx.drawImage(this.img,this.sourceX,this.sourceY,this.sourceWidth,this.sourceHeight,(this.x+this.offsetX),(this.y+this.offsetY),this.sourceWidth,this.sourceHeight);
+  this.ctx.drawImage(this.img,this.sourceX,this.sourceY,this.sourceWidth,this.sourceHeight,(this.x+this.offsetX),(this.y+this.offsetY),(this.sourceWidth-this.scaleWidth),(this.sourceHeight-this.scaleHeight));
 }
 
 Background.prototype.checkSource = function(){
@@ -145,6 +171,10 @@ Background.prototype.checkSource = function(){
     this.sourceY = 149;
     this.stateCount = 1;
     break;
+  case 'wcloudsg':
+    this.sourceY = 392;
+    this.stateCount = 1;
+    this.offsetY += Math.random();
   }
 }
 
@@ -175,21 +205,35 @@ Background.prototype.scroll = function(){
   case 'mountains':
     this.offsetX -= 1;
     break;
+  case 'wcloudsg':
+    this.offsetX -= 2;
   }
   while((this.x+this.offsetX) < this.rubber.width){
     this.x += this.sourceWidth;
+    /*
+      if(this.name == 'wcloudsg'){
+      if((this.y+this.offsetY) <= 0)
+	this.offsetY -= Math.random();
+      else if((this.y+this.offsetY) < this.rubber.fans.y)
+	this.offsetY += Math.random();
+    } 
+*/   
     this.draw();
   }
   this.x = 0;
 }
 
-function Player(rubber, name, state){
+function Player(rubber, name, state, gender){
   this.rubber = rubber;
   this.canvasBounds = rubber.canvas[0].getBoundingClientRect();
   this.ctx = rubber.canvas[0].getContext('2d');
   this.img = document.createElement('img');
   this.name = name;
-  this.imgName = this.rubber.imgFolder.concat(this.name.concat('.png'));
+  this.gender = gender;
+  if(this.name == 'shadow')
+    this.imgName = this.rubber.imgFolder.concat(this.name.concat(this.gender.concat('Character.png')));
+  else
+    this.imgName = this.rubber.imgFolder.concat(this.gender.concat('Character.png'));
   this.img.src=this.imgName;
   this.boundingWidth = this.img.width;
   this.boundingHeight = this.img.height;
@@ -312,7 +356,7 @@ Player.prototype.jump = function(){ //contains error, needs work
 
   if(this.x < ((this.rubber.width-(this.sourceWidth))/3)){
     if(this.velX < 8){
-      this.velX = 2;
+      this.velX = 8;
     }
   }
 /*  else if(this.x > (((this.rubber.width-(this.sourceWidth))/3)*2)){
@@ -322,7 +366,7 @@ Player.prototype.jump = function(){ //contains error, needs work
   }
 */
   if(this.velX < 0)
-    this.velX = 2;
+    this.velX = 8;
   this.x += this.velX;
 
   if(this.y > this.rubber.height/3){    
@@ -361,6 +405,12 @@ Rubber.prototype.draw = function(){
   this.ctx.fillRect(0,0,this.width,this.height);
   this.mountains.draw();
   this.mountains.scroll();
+  //this.cloud1.draw();
+  //this.cloud1.scroll();
+  for(var i = 0; i < 3; i++){
+    this.clouds[i].draw();
+    this.clouds[i].scroll();
+  }
   this.fans.draw();
   this.fans.scroll();
   this.stands.draw();
@@ -392,7 +442,7 @@ function initComponents()
 
   initDictionary();
 
-  initStatistics();
+  //initStatistics();
 
   start();
 }
@@ -402,15 +452,10 @@ function initStatistics(){
   var temp = document.createElement("TEXTAREA");
   var attempt = 0;
   var t = document.createTextNode(attempt);
+      
   temp.appendChild(t);
   stats.appendChild(temp);
-  
-  // styleds
-  temp.style.width = '20%';
-   
-  // add new line
-  temp = document.createElement('br');
-  stats.appendChild(temp);
+
 }
 
 function initButtons()
