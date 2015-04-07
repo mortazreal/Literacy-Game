@@ -174,7 +174,7 @@ Background.prototype.checkSource = function(){
   case 'wcloudsg':
     this.sourceY = 392;
     this.stateCount = 1;
-    this.offsetY += Math.random();
+    //this.offsetY += Math.random();
   }
 }
 
