@@ -37,7 +37,7 @@ function Rubber(canvasID) {
   }
   this.mountains = new Background(this, 'mountains', 'scroll');
   this.player = new Player(this, 'lucas', 'stand', 'female');
-  this.shadow = new Player(this, 'shadow', 'stand', 'female');
+  this.shadow = new Player(this, 'Shadow', 'stand', 'female');
 }
 
 function Background(rubber, name, state){
@@ -230,8 +230,8 @@ function Player(rubber, name, state, gender){
   this.img = document.createElement('img');
   this.name = name;
   this.gender = gender;
-  if(this.name == 'shadow')
-    this.imgName = this.rubber.imgFolder.concat(this.name.concat(this.gender.concat('Character.png')));
+  if(this.name == 'Shadow')
+    this.imgName = this.rubber.imgFolder.concat(this.gender.concat(this.name.concat('Character.png')));
   else
     this.imgName = this.rubber.imgFolder.concat(this.gender.concat('Character.png'));
   this.img.src=this.imgName;
@@ -267,7 +267,7 @@ Player.prototype.setSource = function(){
     this.y = this.boundingHeight-this.sourceHeight;
     this.Multiplier = (3 * Math.random());
     break;
-  case 'shadow':
+  case 'Shadow':
     this.sourceWidth = 40;
     this.sourceHeight = 50;
     this.sourceX = this.sourceWidth;
@@ -305,7 +305,7 @@ Player.prototype.checkSource = function(){
       break;
     }
   break;
-  case 'shadow':
+  case 'Shadow':
     switch(this.state){
     case 'stand':
       this.sourceY = 0
