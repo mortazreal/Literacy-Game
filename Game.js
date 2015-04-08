@@ -136,7 +136,7 @@ Background.prototype.setSource = function(){
     this.scaleWidth = 45;
     this.scaleHeight = 35;
     this.x = this.rubber.width-this.sourceWidth;
-    this.y = this.rubber.stands.y-this.sourceHeight;
+    this.y = this.rubber.stands.y-this.sourceHeight - 7;
   }
 }
 
@@ -330,6 +330,12 @@ Player.prototype.checkSource = function(){
     }
   break;
   }
+  if((this.sourceX % (this.sourceWidth * this.stateCount)) == 0){
+    this.sourceX = this.sourceWidth;
+  }
+  else{
+    this.sourceX += this.sourceWidth;
+  }
 }
 
 Player.prototype.stand = function(){
@@ -391,13 +397,7 @@ Player.prototype.jump = function(){ //contains error, needs work
 Player.prototype.draw = function(){
   this.checkSource();    
   this.ctx.drawImage(this.img,this.sourceX,this.sourceY,this.sourceWidth,this.sourceHeight,(this.x+this.offsetX),(this.y+this.offsetY),this.sourceWidth,this.sourceHeight);
-  if((this.sourceX % (this.sourceWidth * this.stateCount)) == 0){
-    this.sourceX = this.sourceWidth;
   }
-  else{
-    this.sourceX += this.sourceWidth;
-  }
-}
 
 Rubber.prototype.draw = function(){
   this.ctx.clearRect(0,0,this.width,this.height);
